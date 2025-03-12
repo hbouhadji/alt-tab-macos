@@ -41,7 +41,7 @@ class PreferencesWindow: NSWindow {
         toolbar!.showsBaselineSeparator = true
         [
             (0, NSLocalizedString("General", comment: ""), "general", "switch.2", GeneralTab.initTab()),
-            (1, NSLocalizedString("Controls", comment: ""), "controls", "command", ControlsTab.initTab()),
+            (1, NSLocalizedString("Controls", comment: ""), "controls", "command", AboutTab.initTab()),
             (2, NSLocalizedString("Appearance", comment: ""), "appearance", "paintpalette", AppearanceTab.initTab()),
             (3, NSLocalizedString("Policies", comment: ""), "policies", "antenna.radiowaves.left.and.right", PoliciesTab.initTab()),
             (4, NSLocalizedString("Blacklists", comment: ""), "blacklists", "hand.raised", BlacklistsTab.initTab()),
