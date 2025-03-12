@@ -5,7 +5,7 @@ class ControlsTab {
     static var shortcuts = [String: ATShortcut]()
     static var shortcutControls = [String: (CustomRecorderControl, String)]()
     static var shortcutsActions = [
-        "holdShortcut": { App.app.showUi() },
+        "holdShortcut": { App.app.focusTarget() },
         "holdShortcut2": { App.app.focusTarget() },
         "holdShortcut3": { App.app.focusTarget() },
         "focusWindowShortcut": { App.app.focusTarget() },
@@ -38,13 +38,13 @@ class ControlsTab {
 
     static func initTab() -> NSView {
         let (holdShortcut, nextWindowShortcut, tab1View) = shortcutTab(0)
-        // let (holdShortcut2, nextWindowShortcut2, tab2View) = shortcutTab(1)
-        // let (holdShortcut3, nextWindowShortcut3, tab3View) = shortcutTab(2)
-        // let tab6View = gestureTab(Preferences.gestureIndex)
-        tableGroupViews = [tab1View]
+        let (holdShortcut2, nextWindowShortcut2, tab2View) = shortcutTab(1)
+        let (holdShortcut3, nextWindowShortcut3, tab3View) = shortcutTab(2)
+        let tab6View = gestureTab(Preferences.gestureIndex)
+        tableGroupViews = [tab1View, tab2View, tab3View, tab6View]
         // trigger shortcutChanged for these shortcuts to trigger .restrictModifiers
-        [holdShortcut].forEach { ControlsTab.shortcutChangedCallback($0[1] as! NSControl) }
-        [nextWindowShortcut/*, nextWindowShortcut2, nextWindowShortcut3*/].forEach { ControlsTab.shortcutChangedCallback($0[0] as! NSControl) }
+        [holdShortcut, holdShortcut2, holdShortcut3].forEach { ControlsTab.shortcutChangedCallback($0[1] as! NSControl) }
+        [nextWindowShortcut, nextWindowShortcut2, nextWindowShortcut3].forEach { ControlsTab.shortcutChangedCallback($0[0] as! NSControl) }
         let tabs = StackView(tableGroupViews, .vertical)
         tabs.translatesAutoresizingMaskIntoConstraints = false
         tabs.fit()
@@ -62,45 +62,12 @@ class ControlsTab {
         let additionalControlsButton = NSButton(title: NSLocalizedString("Additional controls…", comment: ""), target: self, action: #selector(ControlsTab.showAdditionalControlsSettings))
         let shortcutsButton = NSButton(title: NSLocalizedString("Shortcuts when active…", comment: ""), target: self, action: #selector(ControlsTab.showShortcutsSettings))
         let tools = StackView([additionalControlsButton, shortcutsButton], .horizontal)
-        let view = TableGroupSetView(originalViews: [table, tab1View, /*tab2View, tab3View, tab6View*/], toolsViews: [tools], toolsAlignment: .trailing)
+        let view = TableGroupSetView(originalViews: [table, tab1View, tab2View, tab3View, tab6View], toolsViews: [tools], toolsAlignment: .trailing)
         view.translatesAutoresizingMaskIntoConstraints = false
         shortcutsWhenActiveSheet = ShortcutsWhenActiveSheet()
         additionalControlsSheet = AdditionalControlsSheet()
         ControlsTab.switchIndexTab(0)
         view.fit()
-
-
-        // custom
-        // addShortcut(.up, .global, Shortcut(keyEquivalent: "⌥")!, "holdShortcut", nil)
-        // addShortcut(.down, .global, Shortcut(keyEquivalent: "⌥⇥")!, "nextWindowShortcut", nil)
-        // restrictModifiersOfHoldShortcut("nextWindowShortcut", [NSEvent.ModifierFlags(rawValue: 0)])
-        // let leftOptionKeyCode: UInt16 = 58  // Option gauche
-        // let rightOptionKeyCode: UInt16 = 61 // Option droite
-        
-//        let optionEvent = NSEvent.keyEvent(
-//            with: .keyDown,
-//            location: NSPoint(x: 0, y: 0),
-//            modifierFlags: .option,
-//            timestamp: 0,
-//            windowNumber: 0,
-//            context: nil,
-//            characters: "",
-//            charactersIgnoringModifiers: "",
-//            isARepeat: false,
-//            keyCode: leftOptionKeyCode)!
-
-        // let s = Shortcut(event: optionEvent)!
-        
-        // let leftOption = NSEvent.ModifierFlags(rawValue: UInt(NX_DEVICELALTKEYMASK))
-        // let rightOption = NSEvent.ModifierFlags(rawValue: UInt(NX_DEVICERALTKEYMASK))
-
-        // let s = Shortcut(code: KeyCode(rawValue: KeyCode.none.rawValue)!, modifierFlags: .command, characters: "", charactersIgnoringModifiers: "")
-        addShortcut(.down, .global, Shortcut(keyEquivalent: "⌘")!, "holdShortcut", nil)
-        addShortcut(.up, .global, Shortcut(keyEquivalent: "⌘")!, "cancelShortcut", nil)
-
-        // addShortcut(.down, .global, s, "holdShortcut", nil)
-        // addShortcut(.up, .global, s, "cancelShortcut", nil)
-
         return view
     }
 
@@ -217,18 +184,6 @@ class ControlsTab {
 
     @objc static func shortcutChangedCallback(_ sender: NSControl) {
         let controlId = sender.identifier!.rawValue
-        print("shortcutChangedCallback \(controlId)")
-        if controlId.hasPrefix("holdShortcut") {
-            let i = Preferences.nameToIndex(controlId)
-            let s = Shortcut(keyEquivalent: Preferences.holdShortcut[i])!
-            print(s, Preferences.holdShortcut[i])
-            // addShortcut(.up, .global, s, controlId, i)
-        } else {
-            let newValue = combineHoldAndNextWindow(controlId, sender)
-            print(newValue, [(sender as! CustomRecorderControl).objectValue!.modifierFlags])
-        }
-
-        /*
         if controlId.hasPrefix("holdShortcut") {
             let i = Preferences.nameToIndex(controlId)
             addShortcut(.up, .global, Shortcut(keyEquivalent: Preferences.holdShortcut[i])!, controlId, i)
@@ -246,7 +201,6 @@ class ControlsTab {
                 restrictModifiersOfHoldShortcut(controlId, [(sender as! CustomRecorderControl).objectValue!.modifierFlags])
             }
         }
-        */
     }
 
     private static func restrictModifiersOfHoldShortcut(_ controlId: String, _ modifiers: NSEvent.ModifierFlags) {
