@@ -29,6 +29,9 @@ class ATShortcut {
                 }
             }
         }
+
+        let rightCommand = NSEvent.ModifierFlags(rawValue: UInt(NX_DEVICERCMDKEYMASK))
+        
         if let modifiers {
             let modifiersMatch_ = modifiersMatch(cocoaToCarbonFlags(modifiers))
             let newState: ShortcutState = ((shortcut.keyCode == .none || keyCode == shortcut.carbonKeyCode) && modifiersMatch_) ? .down : .up
@@ -36,6 +39,9 @@ class ATShortcut {
             state = newState
             // state == down is unambiguous; state == up is hard to match with a particular shortcut, unless it's been flipped
             if (triggerPhase == .down && state == .down) || (triggerPhase == .up && state == .up && flipped) {
+                if newState == .down && flipped {
+                    return modifiers.contains(rightCommand) == true
+                }
                 return true
             }
         }
