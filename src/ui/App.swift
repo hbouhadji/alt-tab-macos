@@ -35,9 +35,8 @@ class App: AppCenterApplication {
         super.init()
         delegate = self
         App.app = self
-        
-        // Add global event monitor for right command key
-        NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { event in
+
+        let handleEvent = { (event: NSEvent) in
             if event.keyCode == kVK_RightCommand {
                 let isPressed = (event.modifierFlags.contains(.command))
                 print("Right Command key is \(isPressed ? "pressed" : "released")")
@@ -56,29 +55,18 @@ class App: AppCenterApplication {
                     App.app.focusTarget()
                 }
             }
+
+            return event
         }
 
-        // Add local event monitor for right command key when app is in focus
-        NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
-            if event.keyCode == kVK_RightCommand {
-                let isPressed = (event.modifierFlags.contains(.command))
-                print("Right Command key is \(isPressed ? "pressed" : "released") (local)")
+        // Add global event monitor for right command/option key when app is not in focus
+        NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { event in
+            _ = handleEvent(event)
+        }
 
-                if isPressed {
-                    App.app.showUi()
-                } else {
-                    App.app.focusTarget()
-                }
-            }
-            if event.keyCode == kVK_RightOption {
-                let isPressed = (event.modifierFlags.contains(.option))
-                if isPressed {
-                    App.app.showUiOrCycleSelection(1)
-                } else {
-                    App.app.focusTarget()
-                }
-            }
-            return event
+        // Add local event monitor for right command/option key when app is in focus
+        NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+            return handleEvent(event)
         }
 
         // Add local event monitor for arrow keys when app is in focus
